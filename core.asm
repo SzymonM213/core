@@ -113,8 +113,8 @@ core:
         pop rsi
         jmp .loop
 .S:
-        pop rax ; komu
-        pop rdx ; co
+        pop rax
+        pop rdx
         lea r8, [values]
         lea r9, [sync]
         mov [r8 + 8*rdi], rdx
