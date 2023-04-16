@@ -1,7 +1,6 @@
 default rel
 extern get_value
 extern put_value
-;extern N
 global core
 
 section .bss
@@ -10,24 +9,21 @@ section .bss
 section .data
         sync: times N dq N
 
-
 section .text
 core:
         push r12
         mov r12, rsp
-        dec rsi
 .loop:
-        inc rsi
         xor eax, eax
         mov al, [rsi]
         test al, al
         jz .end
         cmp al, '+'
         je .add
-        cmp al, '-'
-        je .neg
         cmp al, '*'
         je .mul
+        cmp al, '-'
+        je .neg
         cmp al, 'n'
         je .n
         cmp al, 'B'
@@ -45,48 +41,46 @@ core:
         cmp al, 'S'
         je .S
         sub al, '0' ;*p is a digit
+.endloopandpush:
         push rax
+.endloop:
+        inc rsi
         jmp .loop
 .add:
         pop rax
         pop rdx
         add rax, rdx
-        push rax
-        jmp .loop
-.neg:
-        neg qword [rsp]
-        jmp .loop
+        jmp .endloopandpush
 .mul:
         pop rax
         pop rdx
         mul rdx
-        push rax
-        jmp .loop
+        jmp .endloopandpush
+.neg:
+        neg qword [rsp]
+        jmp .endloop
 .n:
         push rdi
-        jmp .loop
+        jmp .endloop
 .B:
         pop rdx
         mov rax, [rsp]
         test rax, rax
-        jz .loop
+        jz .endloop
         add rsi, rdx
-        jmp .loop
+        jmp .endloop
 .C:
         pop rax
-        mov rax, [rsp]
-        jmp .loop
+        jmp .endloop
 .D:
         pop rax
         push rax
-        push rax
-        jmp .loop
+        jmp .endloopandpush
 .E:
         pop rdx
         pop rax
         push rdx
-        push rax
-        jmp .loop
+        jmp .endloopandpush
 .G:
         push rdi
         push rsi
@@ -98,8 +92,7 @@ core:
         pop r13
         pop rsi
         pop rdi
-        push rax
-        jmp .loop
+        jmp .endloopandpush
 .P:
         xchg rsi, [rsp]
         push rdi
@@ -111,13 +104,12 @@ core:
         pop r13
         pop rdi
         pop rsi
-        jmp .loop
+        jmp .endloop
 .S:
-        pop rax ; komu
-        pop rdx ; co
         lea r8, [values]
         lea r9, [sync]
-        mov [r8 + 8*rdi], rdx
+        pop rax
+        pop qword [r8 + 8*rdi]
         mov [r9 + 8*rdi], rax
 .spinlock:
         cmp rdi, [r9 + 8*rax]
@@ -128,7 +120,7 @@ core:
 .spinlock2:
         cmp rcx, [r9 + 8*rdi]
         jne .spinlock2
-        jmp .loop
+        jmp .endloop
 .end:
         pop rax
         mov rsp, r12
