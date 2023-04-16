@@ -115,10 +115,9 @@ core:
         cmp rdi, [r9 + 8*rax]
         jne .spinlock
         push qword [r8 + 8*rax]
-        mov qword [r9 + 8*rax], N
-        mov rcx, N
+        mov qword [r9 + 8*rax], rax
 .spinlock2:
-        cmp rcx, [r9 + 8*rdi]
+        cmp rdi, [r9 + 8*rdi]
         jne .spinlock2
         jmp .endloop
 .end:
