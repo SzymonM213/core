@@ -113,8 +113,8 @@ core:
         pop rsi
         jmp .loop
 .S:
-        pop rax
-        pop rdx
+        pop rax ; komu
+        pop rdx ; co
         lea r8, [values]
         lea r9, [sync]
         mov [r8 + 8*rdi], rdx
@@ -123,10 +123,10 @@ core:
         cmp rdi, [r9 + 8*rax]
         jne .spinlock
         push qword [r8 + 8*rax]
-        mov qword [r9 + 8*rdi], N
+        mov qword [r9 + 8*rax], N
         mov rcx, N
 .spinlock2:
-        cmp rcx, [r9 + 8*rax]
+        cmp rcx, [r9 + 8*rdi]
         jne .spinlock2
         jmp .loop
 .end:
