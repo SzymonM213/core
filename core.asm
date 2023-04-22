@@ -10,40 +10,34 @@ section .data
         sync: times N dq N                ; sync[n] = n (array to synchronize the threads)
 
 section .text
-; core arguments: 
-; rdi - thread id (n), 
+; core arguments:
+; rdi - thread id (n),
 ; rsi - pointer to the code (*p)
 core:
         push    r12                       ; Save r12
         mov     r12, rsp                  ; Save rsp
 .loop:                                    ; Loop over the *p string
         xor     eax, eax                  ; Clear eax
-        mov     al, [rsi]                 ; Read the next character and compare it with all possible options
-        test    al, al
-        jz      .end
-        cmp     al, '+'
-        je      .add
-        cmp     al, '*'
-        je      .mul
+        mov     al, [rsi]                 ; Read the next character and compare it with all possible options - all the proper chars are in order: '\0', '*', '+', '-', '0'..'9', 'B', 'C', 'D', 'E', 'G', 'P', 'S', 'n' sorting by ascii value
+        cmp     al, '*'                   ; If the character is less than '*', it has to be '\0'
+        jb      .end                      ; p[i] = '\0', so it's the last character of the string
+        je      .mul                      ; p[i]] = '*'
         cmp     al, '-'
-        je      .neg
-        cmp     al, 'n'
-        je      .n
-        cmp     al, 'B'
-        je      .B
-        cmp     al, 'C'
-        je      .C
-        cmp     al, 'D'
-        je      .D
-        cmp     al, 'E'
-        je      .E
-        cmp     al, 'G'
-        je      .G
-        cmp     al, 'P'
-        je      .P
+        jb      .add                      ; If the character is less than '-' and bigger than '*' it has to be '+'
+        je      .neg                      ; p[i] = '-'
         cmp     al, 'S'
-        je      .S
-        sub     al, '0'                   ;*p is a digit (last possible option left)
+        ja      .n                        ; If the character is bigger than 'S' it has to be 'n'
+        je      .S                        ; p[i] = 'S'
+        cmp     al, 'G'
+        ja      .P                        ; If the character is bigger than 'G' and less than 'S' it has to be 'P'
+        je      .G                        ; p[i] = 'G'
+        cmp     al, 'D'
+        ja      .E                        ; If the character is bigger than 'D' and less than 'G' it has to be 'E'
+        je      .D                        ; p[i] = 'D'
+        cmp     al, 'B'
+        ja      .C                        ; If the character is bigger than 'B' and less than 'D' it has to be 'C'
+        je      .B                        ; p[i] = 'B'
+        sub     al, '0'                   ; p[i] is a digit (last possible option left)
 .endloopandpush:                          ; Push the result to the stack
         push    rax
 .endloop:                                 ; End one iteration of the loop
